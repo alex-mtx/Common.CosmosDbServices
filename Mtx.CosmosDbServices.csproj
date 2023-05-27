@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Using Include="Common.CosmosDbServices" />
+    <Using Include="Mtx.CosmosDbServices" />
   </ItemGroup>
 
 </Project>

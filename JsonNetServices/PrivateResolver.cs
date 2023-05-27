@@ -2,7 +2,7 @@
 using Newtonsoft.Json.Serialization;
 using System.Reflection;
 
-namespace Common.CosmosDbServices.JsonNetServices
+namespace Mtx.CosmosDbServices.JsonNetServices
 {
     public class PrivateResolver : DefaultContractResolver
     {

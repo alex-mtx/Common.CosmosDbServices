@@ -5,7 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
-namespace Common.CosmosDbServices
+namespace Mtx.CosmosDbServices
 {
     public static class CosmosDbConfigOptionsExtensions
     {

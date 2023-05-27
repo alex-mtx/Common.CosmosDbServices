@@ -1,7 +1,7 @@
 ﻿using Microsoft.Azure.Cosmos;
 using System.Text.Json.Serialization;
 
-namespace Common.CosmosDbServices.Entities;
+namespace Mtx.CosmosDbServices.Entities;
 
 public interface ICosmosDocumentIdentity
 {

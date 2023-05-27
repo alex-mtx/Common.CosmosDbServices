@@ -1,7 +1,8 @@
 ﻿using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Options;
+using Mtx.CosmosDbServices.Entities;
 
-namespace Common.CosmosDbServices;
+namespace Mtx.CosmosDbServices;
 
 public abstract class CosmosDbService : ICosmosDbService
 {
@@ -13,7 +14,17 @@ public abstract class CosmosDbService : ICosmosDbService
 		CosmosClient dbClient,
 		IOptions<CosmosDbOptions> options)
 	{
-		_container = dbClient.GetContainer(DatabaseName, ContainerName);
+		if (dbClient is null)
+		{
+			throw new ArgumentNullException(nameof(dbClient));
+		}
+
+		if (options is null || options.Value is null)
+		{
+			throw new ArgumentNullException(nameof(options));
+		}
+
+		_container = dbClient.GetContainer(options.Value.DbName, ContainerName);
 	}
 
 	public async Task<List<T>> GetItemsAsync<T>(object query, CancellationToken ct)
@@ -63,4 +74,13 @@ public abstract class CosmosDbService : ICosmosDbService
 		}
 	}
 
+	public Task AddAsync<T>(T item, object id, object partitionKey, CancellationToken cancellationToken)
+	{
+		throw new NotImplementedException();
+	}
+
+	public Task AddAsync<T>(T item, CancellationToken cancellationToken) where T : ICosmosDocumentIdentity
+	{
+		throw new NotImplementedException();
+	}
 }

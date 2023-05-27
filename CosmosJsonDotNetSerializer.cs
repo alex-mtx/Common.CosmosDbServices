@@ -1,4 +1,4 @@
-﻿namespace Common.CosmosDbServices
+﻿namespace Mtx.CosmosDbServices
 {
     using Microsoft.Azure.Cosmos;
     using Newtonsoft.Json;
