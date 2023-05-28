@@ -16,7 +16,17 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Mtx.Results\Mtx.Results\Mtx.Results.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Microsoft.Azure.Cosmos" />
     <Using Include="Mtx.CosmosDbServices" />
+    <Using Include="Mtx.CosmosDbServices.Entities" />
+    <Using Include="Mtx.Results" />
+    <Using Include="Mtx.Results.StatusCodes">
+      <Static>True</Static>
+    </Using>
   </ItemGroup>
 
 </Project>

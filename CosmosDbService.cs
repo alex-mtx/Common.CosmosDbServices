@@ -1,6 +1,5 @@
-﻿using Microsoft.Azure.Cosmos;
-using Microsoft.Extensions.Options;
-using Mtx.CosmosDbServices.Entities;
+﻿using Microsoft.Extensions.Options;
+using System.Net;
 
 namespace Mtx.CosmosDbServices;
 
@@ -9,6 +8,7 @@ public abstract class CosmosDbService : ICosmosDbService
 	protected abstract string ContainerName { get; }
 	protected abstract string DatabaseName { get; }
 	protected readonly Container _container;
+	private ItemResponse<object> result;
 
 	public CosmosDbService(
 		CosmosClient dbClient,
@@ -27,60 +27,70 @@ public abstract class CosmosDbService : ICosmosDbService
 		_container = dbClient.GetContainer(options.Value.DbName, ContainerName);
 	}
 
-	public async Task<List<T>> GetItemsAsync<T>(object query, CancellationToken ct)
+	public async Task<Result> AddAsync<T>(T item, object id, object partitionKey, CancellationToken cancellationToken)
+	{
+		try
+		{
+			var response = await _container.CreateItemAsync(item, new PartitionKey(partitionKey.ToString()), cancellationToken: cancellationToken);
+			return new Result((int)response.StatusCode);
+		}
+		catch (Exception e)
+		{
+
+			return Result.InternalError(error: e.Message, exception: e);
+		}
+	}
+
+	public async Task<Result> AddAsync<T>(T item, ICosmosDocumentIdentity identity, CancellationToken cancellationToken)
+	{
+		return await AddAsync(item, identity.Id, identity.PartitionKey, cancellationToken: cancellationToken);
+	}
+
+	public async Task<DataResult<T>> GetAsync<T>(object id, object partitionKey, CancellationToken ct = default)
+	{
+		try
+		{
+			var result = await _container.ReadItemAsync<T>(id.ToString(), new PartitionKey(id.ToString()), cancellationToken: ct);
+			if (result.StatusCode == HttpStatusCode.OK) return DataResult<T>.Ok200(result.Resource);
+			if (result.StatusCode == HttpStatusCode.NotFound) return DataResult<T>.NotFound404();
+			return DataResult<T>.InternalError("A unknown internal error occurred");
+		}
+		catch (Exception e)
+		{
+			return DataResult<T>.InternalError(error: e.Message, exception: e);
+		}
+	}
+
+	public async Task<DataResult<List<T>>> GetItemsAsync<T>(object query, CancellationToken cancellationToken)
 	{
 		var queryIterator = _container.GetItemQueryIterator<T>(new QueryDefinition(query.ToString()));
 		List<T> results = new();
 		while (queryIterator.HasMoreResults)
 		{
-			var response = await queryIterator.ReadNextAsync(ct);
+			var response = await queryIterator.ReadNextAsync(cancellationToken);
 
 			results.AddRange(response.ToList());
 		}
 
-		return results;
+		return new(StatusCodes.Status200OK, Contents: results);
 	}
 
-	public async Task<T?> GetAsync<T>(object id, CancellationToken ct)
+	public async Task<Result> UpdateAsync<T>(T item, object id, object partitionKey, CancellationToken ct)
 	{
 		try
 		{
-			var result = await _container.ReadItemAsync<T>(id.ToString(), new PartitionKey(id.ToString()), cancellationToken: ct);
-			if (result.StatusCode == System.Net.HttpStatusCode.OK) return result.Resource;
+			var result = await this._container.UpsertItemAsync<T>(item, new PartitionKey(partitionKey.ToString()), cancellationToken: ct);
+			return new Result((int)result.StatusCode);
 		}
-		catch
+		catch (Exception e)
 		{
+			return Result.InternalError(error: e.Message, exception: e);
 
 		}
-		return default;
 	}
 
-	//changing the state of the application should be in the domain layer instead. It is here to demonstration purposes
-	public async Task AddAsync<T>(T item, object partitionKey, CancellationToken cancellationToken)
+	public async Task<Result> UpdateAsync<T>(T item, ICosmosDocumentIdentity identity, CancellationToken ct)
 	{
-		//here we usually wanted to check the result and return it to the caller
-		_ = await _container.CreateItemAsync(item, new PartitionKey(partitionKey.ToString()), cancellationToken: cancellationToken);
-	}
-
-	//changing the state of the application should be in the domain layer instead. It is here to demonstration purposes
-	public async Task UpdateAsync<T>(T item, object id, object partitionKey, CancellationToken ct)
-	{
-		//this code is not production ready
-		var result = await this._container.UpsertItemAsync<T>(item, new PartitionKey(partitionKey.ToString()), cancellationToken: ct);
-		var retries = 0;
-		while (result.StatusCode == System.Net.HttpStatusCode.Conflict && retries++ < 3)
-		{
-			result = await this._container.UpsertItemAsync<T>(item, new PartitionKey(partitionKey.ToString()), cancellationToken: ct);
-		}
-	}
-
-	public Task AddAsync<T>(T item, object id, object partitionKey, CancellationToken cancellationToken)
-	{
-		throw new NotImplementedException();
-	}
-
-	public Task AddAsync<T>(T item, CancellationToken cancellationToken) where T : ICosmosDocumentIdentity
-	{
-		throw new NotImplementedException();
+		return await UpdateAsync(item, identity.Id, identity.PartitionKey, ct);
 	}
 }
