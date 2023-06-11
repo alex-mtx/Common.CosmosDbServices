@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using System.Configuration;
 
 namespace Mtx.CosmosDbServices
 {
@@ -13,8 +14,11 @@ namespace Mtx.CosmosDbServices
         /// Creates a Cosmos DB database and a container with the specified partition key. 
         /// </summary>
         /// <returns></returns>
-        public static void InitializeCosmosCosmosDbService(this IServiceCollection services, IConfiguration configuration)
+        public static void InitializeCosmosDbService(this IServiceCollection services, IConfiguration configuration)
         {
+			services.Configure<CosmosDbOptions>(configuration.GetSection(CosmosDbOptions.CosmosDb));
+
+			services.AddTransient<ICosmosDbService,CosmosDbService>();
             services.AddSingleton<CosmosClient>(factory =>
             {
                 var options = factory.GetRequiredService<IOptions<CosmosDbOptions>>().Value;

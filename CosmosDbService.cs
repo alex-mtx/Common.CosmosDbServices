@@ -1,15 +1,15 @@
 ﻿using Microsoft.Extensions.Options;
 using System.Net;
+using System.Net.Sockets;
 
 namespace Mtx.CosmosDbServices;
 
-public abstract class CosmosDbService : ICosmosDbService
+public class CosmosDbService : ICosmosDbService
 {
-	protected abstract string ContainerName { get; }
-	protected abstract string DatabaseName { get; }
-	protected readonly Container _container;
-	private ItemResponse<object> result;
+	private readonly CosmosClient _dbClient;
 
+	protected virtual string DatabaseName { get; }
+	public static IdentityMap IdentityMap { get; set; } = new IdentityMap();
 	public CosmosDbService(
 		CosmosClient dbClient,
 		IOptions<CosmosDbOptions> options)
@@ -18,19 +18,23 @@ public abstract class CosmosDbService : ICosmosDbService
 		{
 			throw new ArgumentNullException(nameof(dbClient));
 		}
+		
 
 		if (options is null || options.Value is null)
 		{
 			throw new ArgumentNullException(nameof(options));
 		}
 
-		_container = dbClient.GetContainer(options.Value.DbName, ContainerName);
 	}
 
 	public async Task<Result> AddAsync<T>(T item, object id, object partitionKey, CancellationToken cancellationToken)
 	{
 		try
 		{
+		var _container = _dbClient.GetContainer(options.Value.DbName, ContainerName);
+
+			var container = _dbClient.GetContainer(options.Value.DbName, ContainerName);
+
 			var response = await _container.CreateItemAsync(item, new PartitionKey(partitionKey.ToString()), cancellationToken: cancellationToken);
 			return new Result((int)response.StatusCode);
 		}
@@ -43,6 +47,7 @@ public abstract class CosmosDbService : ICosmosDbService
 
 	public async Task<Result> AddAsync<T>(T item, ICosmosDocumentIdentity identity, CancellationToken cancellationToken)
 	{
+
 		return await AddAsync(item, identity.Id, identity.PartitionKey, cancellationToken: cancellationToken);
 	}
 
@@ -93,4 +98,19 @@ public abstract class CosmosDbService : ICosmosDbService
 	{
 		return await UpdateAsync(item, identity.Id, identity.PartitionKey, ct);
 	}
+}
+
+public class IdentityMap
+{
+
+	private Dictionary<Type, dynamic> mappings = new Dictionary<Type, dynamic>();
+	public void AddFor<T>(Func<T, ICosmosDocumentIdentity> func) where T : class
+	{
+		mappings[typeof(T)] = func;
+	}
+	public ICosmosDocumentIdentity GetFor<T>(T entity) where T : class
+	{
+		return mappings[typeof(T)].Invoke(entity);
+	}
+
 }
