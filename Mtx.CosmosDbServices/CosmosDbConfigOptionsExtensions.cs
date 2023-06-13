@@ -18,7 +18,7 @@ namespace Mtx.CosmosDbServices
         {
 			services.Configure<CosmosDbOptions>(configuration.GetSection(CosmosDbOptions.CosmosDb));
 
-			services.AddTransient<ICosmosDbService,CosmosDbService>();
+            services.AddTransient<ICosmosDbService, CosmosDbService>();
             services.AddSingleton<CosmosClient>(factory =>
             {
                 var options = factory.GetRequiredService<IOptions<CosmosDbOptions>>().Value;

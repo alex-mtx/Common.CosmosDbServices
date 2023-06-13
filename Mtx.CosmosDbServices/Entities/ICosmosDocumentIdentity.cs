@@ -6,4 +6,3 @@ public interface ICosmosDocumentIdentity
 	object PartitionKey { get; }
 	string Container { get; }
 }
-

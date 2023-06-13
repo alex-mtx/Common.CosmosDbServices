@@ -3,7 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.6.33513.286
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mtx.CosmosDbServices", "Mtx.CosmosDbServices/Mtx.CosmosDbServices.csproj", "{8372F0F7-55CC-4A28-8081-84974D5E79EB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mtx.CosmosDbServices", "Mtx.CosmosDbServices\Mtx.CosmosDbServices.csproj", "{8372F0F7-55CC-4A28-8081-84974D5E79EB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mtx.CosmosDbServicesTests", "Mtx.CosmosDbServicesTests\Mtx.CosmosDbServicesTests.csproj", "{611087CB-1530-4F38-8AC2-9116E856E317}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mtx.Results", "..\Mtx.Results\Mtx.Results\Mtx.Results.csproj", "{8BE200C5-F552-4FF5-A602-A9A8CA636014}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +19,14 @@ Global
 		{8372F0F7-55CC-4A28-8081-84974D5E79EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8372F0F7-55CC-4A28-8081-84974D5E79EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8372F0F7-55CC-4A28-8081-84974D5E79EB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{611087CB-1530-4F38-8AC2-9116E856E317}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{611087CB-1530-4F38-8AC2-9116E856E317}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{611087CB-1530-4F38-8AC2-9116E856E317}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{611087CB-1530-4F38-8AC2-9116E856E317}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8BE200C5-F552-4FF5-A602-A9A8CA636014}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8BE200C5-F552-4FF5-A602-A9A8CA636014}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8BE200C5-F552-4FF5-A602-A9A8CA636014}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8BE200C5-F552-4FF5-A602-A9A8CA636014}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
