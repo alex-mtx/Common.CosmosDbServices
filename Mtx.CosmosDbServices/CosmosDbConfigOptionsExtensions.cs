@@ -26,14 +26,13 @@ namespace Mtx.CosmosDbServices
 					//SerializerOptions = options,
 					Serializer = new CosmosJsonDotNetSerializer(new JsonSerializerSettings
 					{
-
 						ContractResolver = new JsonDotNetPrivateResolver(),
-						TypeNameHandling = TypeNameHandling.None,
+						TypeNameHandling = TypeNameHandling.All,
 						ReferenceLoopHandling = ReferenceLoopHandling.Error,
 						PreserveReferencesHandling = PreserveReferencesHandling.None,
-						ConstructorHandling = ConstructorHandling.AllowNonPublicDefaultConstructor,
-					})
-
+						ConstructorHandling = ConstructorHandling.Default,
+					}),
+					
 				};
 
 				return new CosmosClient(options.Endpoint, options.Key, clientOptions: clientOptions);

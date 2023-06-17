@@ -2,9 +2,12 @@
 {
     using Microsoft.Azure.Cosmos;
     using Newtonsoft.Json;
-    using System;
-    using System.IO;
-    using System.Text;
+	using Newtonsoft.Json.Linq;
+	using Newtonsoft.Json.Serialization;
+	using System;
+	using System.IO;
+	using System.Reflection;
+	using System.Text;
 
 
     /// <summary>
@@ -40,7 +43,8 @@
         {
             using (stream)
             {
-                if (typeof(Stream).IsAssignableFrom(typeof(T)))
+
+				if (typeof(Stream).IsAssignableFrom(typeof(T)))
                 {
                     return (T)(object)stream;
                 }
@@ -50,7 +54,7 @@
                     using (var jsonTextReader = new JsonTextReader(sr))
                     {
                         var jsonSerializer = GetSerializer();
-                        return jsonSerializer.Deserialize<T>(jsonTextReader);
+						return jsonSerializer.Deserialize<T>(jsonTextReader);
                     }
                 }
             }
@@ -90,4 +94,74 @@
             return JsonSerializer.Create(_serializerSettings);
         }
     }
+	public class PrivateSetterContractResolver : DefaultContractResolver
+	{
+		protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
+		{
+			var jProperty = base.CreateProperty(member, memberSerialization);
+			if (jProperty.Writable)
+				return jProperty;
+
+			jProperty.Writable = member.IsPropertyWithSetter();
+
+			return jProperty;
+		}
+	}
+
+	public class PrivateSetterCamelCasePropertyNamesContractResolver : CamelCasePropertyNamesContractResolver
+	{
+		protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization)
+		{
+			var jProperty = base.CreateProperty(member, memberSerialization);
+			if (jProperty.Writable)
+				return jProperty;
+
+			jProperty.Writable = member.IsPropertyWithSetter();
+
+			return jProperty;
+		}
+	}
+
+	internal static class MemberInfoExtensions
+	{
+		internal static bool IsPropertyWithSetter(this MemberInfo member)
+		{
+			var property = member as PropertyInfo;
+
+			return property?.GetSetMethod(true) != null;
+		}
+	}
+
+	public class Serialization
+	{
+		public static string Serialize(object? instance)
+		{
+			var serialization = JsonConvert.SerializeObject(instance, new JsonSerializerSettings
+			{
+				ContractResolver = new CamelCasePropertyNamesContractResolver()
+			});
+			return serialization;
+		}
+
+		public static T Deserialize<T>(string serialization)
+		{
+			var deserialized = JsonConvert.DeserializeObject<T>(serialization, new JsonSerializerSettings
+			{
+				//ContractResolver = new CamelCasePropertyNamesContractResolver()
+				ContractResolver = new PrivateSetterCamelCasePropertyNamesContractResolver()
+			});
+			return deserialized!;
+		}
+
+		public static object Deserialize(string serialization, Type type)
+		{
+			var deserialized = JsonConvert.DeserializeObject(serialization, type, new JsonSerializerSettings
+			{
+				//ContractResolver = new CamelCasePropertyNamesContractResolver()
+				ContractResolver = new PrivateSetterCamelCasePropertyNamesContractResolver()
+			});
+
+			return deserialized!;
+		}
+	}
 }
