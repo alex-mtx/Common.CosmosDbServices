@@ -86,11 +86,11 @@ internal class CosmosDbService : ICosmosDbService
 		return await GetAsync<T>(id, id.ToPartitionKey(), cancellationToken: ct);
 	}
 
-	public async Task<DataResult<List<T>>> GetItemsAsync<T>(CosmosQuery query, CancellationToken cancellationToken)
+	public async Task<DataResult<List<T>>> GetItemsAsync<TQuery, T>(TQuery query, CancellationToken cancellationToken) where TQuery : CosmosQuery
 	{
 		try
 		{
-			var container = GetContainerFor<T>();
+			var container = GetContainerFor<TQuery>();
 			List<T> results = new();
 
 			using (var queryIterator = container.GetItemQueryIterator<T>(query))
@@ -140,6 +140,34 @@ internal class CosmosDbService : ICosmosDbService
 		return await UpdateAsync(item, id.ToPartitionKey(), ct);
 	}
 
+	public async Task<DataResult<CountResult>> CountAsync<TQuery>(TQuery query, CancellationToken cancellationToken) where TQuery : CosmosQuery
+	{
+		try
+		{
+			var container = GetContainerFor<TQuery>();
+			List<CountResult> results = new();
 
+			using (var queryIterator = container.GetItemQueryIterator<CountResult>(query))
+			{
+				if (!queryIterator.HasMoreResults)
+					DataResult<CountResult>.NoContent204();
 
+				while (queryIterator.HasMoreResults)
+				{
+					var response = await queryIterator.ReadNextAsync(cancellationToken);
+
+					results.AddRange(response.ToList());
+				}
+			}
+
+			return DataResult<CountResult>.Ok200(results.First());
+		}
+		catch (Exception e)
+		{
+
+			logger.LogError(exception: e, "Could not fetch items");
+
+			return DataResult<CountResult>.InternalError(error: e.Message, exception: e);
+		}
+	}
 }
