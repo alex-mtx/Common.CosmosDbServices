@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
 using Mtx.CosmosDbServices.Extensions;
-using System.Collections.Generic;
 using System.Net;
 
 namespace Mtx.CosmosDbServices;
@@ -11,7 +10,7 @@ internal class CosmosDbService : ICosmosDbService
 	public readonly IContainerFactory _containerFactory;
 	private readonly ILogger<CosmosDbService> logger;
 
-	public CosmosDbService(IContainerFactory containerFactory,ILogger<CosmosDbService> logger)
+	public CosmosDbService(IContainerFactory containerFactory, ILogger<CosmosDbService> logger)
 	{
 		_containerFactory = containerFactory ?? throw new ArgumentNullException(nameof(containerFactory));
 		this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -39,7 +38,7 @@ internal class CosmosDbService : ICosmosDbService
 		}
 		catch (Exception e)
 		{
-			logger.LogError(exception:e,"Could not add item");
+			logger.LogError(exception: e, "Could not add item");
 			return Result.InternalErrorWithGenericErrorMessage(exception: e);
 		}
 	}
@@ -92,17 +91,19 @@ internal class CosmosDbService : ICosmosDbService
 		try
 		{
 			var container = GetContainerFor<T>();
-
-			var queryIterator = container.GetItemQueryIterator<T>(query);
-			if (!queryIterator.HasMoreResults)
-				DataResult<List<T>>.NoContent204();
-
 			List<T> results = new();
-			while (queryIterator.HasMoreResults)
-			{
-				var response = await queryIterator.ReadNextAsync(cancellationToken);
 
-				results.AddRange(response.ToList());
+			using (var queryIterator = container.GetItemQueryIterator<T>(query))
+			{
+				if (!queryIterator.HasMoreResults)
+					DataResult<List<T>>.NoContent204();
+
+				while (queryIterator.HasMoreResults)
+				{
+					var response = await queryIterator.ReadNextAsync(cancellationToken);
+
+					results.AddRange(response.ToList());
+				}
 			}
 
 			return DataResult<List<T>>.Ok200(results);
@@ -112,7 +113,7 @@ internal class CosmosDbService : ICosmosDbService
 
 			logger.LogError(exception: e, "Could not fetch items");
 
-			return DataResult< List<T>>.InternalError(error: e.Message, exception: e);
+			return DataResult<List<T>>.InternalError(error: e.Message, exception: e);
 		}
 	}
 
@@ -127,7 +128,7 @@ internal class CosmosDbService : ICosmosDbService
 		}
 		catch (Exception e)
 		{
-			logger.LogError(exception:e,"Could not update item");
+			logger.LogError(exception: e, "Could not update item");
 			return Result.InternalError(error: e.Message, exception: e);
 
 		}
