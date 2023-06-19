@@ -43,6 +43,34 @@ internal class CosmosDbService : ICosmosDbService
 		}
 	}
 
+	public async Task<Result> TransactionalBatchAddAsync<TContainerDefiningType, T>(IEnumerable<T> items, PartitionKeyValue partitionKey, CancellationToken cancellationToken)
+	{
+		try
+		{
+			var container = GetContainerFor<TContainerDefiningType>();
+			TransactionalBatch batch = container.CreateTransactionalBatch(partitionKey);
+
+			foreach (var item in items)
+			{
+				batch.CreateItem(item);
+			}
+
+			using TransactionalBatchResponse response = await batch.ExecuteAsync(cancellationToken);
+
+			if (!response.IsSuccessStatusCode)
+			{
+				logger.LogError("Could not add items with transactional batch: '{0}'", response.ErrorMessage);
+				return response.ToResult();
+			}
+			return response.ToResult();
+		}
+		catch (Exception e)
+		{
+			logger.LogError(exception: e, "Could not add items");
+			return Result.InternalErrorWithGenericErrorMessage(exception: e);
+		}
+	}
+
 	public async Task<Result> AddUsingIdAsPartitionKeyAsync<T>(T item, CancellationToken cancellationToken)
 	{
 		var id = GetIdFrom(item);

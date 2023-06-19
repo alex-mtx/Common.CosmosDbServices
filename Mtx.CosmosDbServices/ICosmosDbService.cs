@@ -12,4 +12,5 @@ public interface ICosmosDbService
 	Task<Result> UpdateUsingIdAsPartitionKeyAsync<T>(T item, CancellationToken ct);
 	Task<Result> DeleteAsync<T>(DocumentId id, PartitionKeyValue partitionKey, CancellationToken ct);
 	Task<Result> DeleteUsingIdAsPartitionKeyAsync<T>(DocumentId id, CancellationToken ct);
+	Task<Result> TransactionalBatchAddAsync<TContainerDefiningType,T>(IEnumerable<T> items, PartitionKeyValue partitionKey, CancellationToken cancellationToken);
 }
