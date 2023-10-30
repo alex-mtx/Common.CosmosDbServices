@@ -1,6 +1,6 @@
 ﻿namespace Mtx.CosmosDbServices;
 
-internal interface IContainerFactory
+public interface IContainerFactory
 {
 	Container CreateFor<T>();
 }

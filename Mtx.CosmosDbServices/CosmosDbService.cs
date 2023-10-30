@@ -4,10 +4,10 @@ using System.Net;
 
 namespace Mtx.CosmosDbServices;
 
-internal class CosmosDbService : ICosmosDbService
+public class CosmosDbService : ICosmosDbService
 {
 
-    public readonly IContainerFactory _containerFactory;
+    private readonly IContainerFactory _containerFactory;
     private readonly ILogger<CosmosDbService> logger;
 
     public CosmosDbService(IContainerFactory containerFactory, ILogger<CosmosDbService> logger)
